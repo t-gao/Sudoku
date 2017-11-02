@@ -5,10 +5,8 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -35,11 +33,6 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private int lineWidth;
     private float cellWidth;
     private float cellHeight;
-    private int numTextSize;
-    private int candidateTextSize;
-
-    private int numberLeftMargin;
-    private int numberTopMargin;
 
     private int boarderColor;
     private int numColor;
@@ -199,10 +192,10 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
-        Log.d(TAG, "widthMode=" + getMeasureSpecModeString(widthMode));
-        Log.d(TAG, "widthSize=" + widthSize);
-        Log.d(TAG, "heightMode=" + getMeasureSpecModeString(heightMode));
-        Log.d(TAG, "heightSize=" + heightSize);
+        TLog.d(TAG, "widthMode=" + getMeasureSpecModeString(widthMode));
+        TLog.d(TAG, "widthSize=" + widthSize);
+        TLog.d(TAG, "heightMode=" + getMeasureSpecModeString(heightMode));
+        TLog.d(TAG, "heightSize=" + heightSize);
 
         int width = -1, height = -1;
         if (widthMode == MeasureSpec.EXACTLY) {

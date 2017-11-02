@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="me.tangni.sudoku.MainActivity">
+
+    <me.tangni.sudoku.view.SudokuBoard
+        android:id="@+id/sudodu_board"
+        android:layout_width="match_parent"
+        android:layout_margin="4dp"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/app_name"
+        android:layout_below="@id/sudodu_board"/>
+    <Button
+        android:id="@+id/btn_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sudodu_board"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true"
+        android:padding="4dp"
+        android:onClick="onStartClick"
+        android:text="START GAME"
+        />
+</RelativeLayout>

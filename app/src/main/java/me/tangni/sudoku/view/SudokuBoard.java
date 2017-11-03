@@ -13,9 +13,10 @@ import android.view.View;
 import java.util.HashSet;
 
 import me.tangni.sudoku.R;
-import me.tangni.sudoku.SudokuGame;
+import me.tangni.sudoku.game.SudokuGame;
 import me.tangni.sudoku.Utils.TLog;
 import me.tangni.sudoku.game.Cell;
+import me.tangni.sudoku.game.SudokuGameListener;
 
 /**
  * @author gaojian
@@ -68,6 +69,9 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private int contentWidth, contentHeight;
 
     private Cell[][] cells;
+
+    private SudokuGameListener listener;
+    private int selectedRow = -1, selectedColumn = -1;
 
     public SudokuBoard(Context context) {
         super(context);
@@ -303,6 +307,10 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     }
 
     public void setCellValue(int row, int column, int value) {
+        if (row < 0 || row > 8 || column < 0 || column > 8 || value < 0 || value > 9) {
+            return;
+        }
+
         Cell cell = cells[row][column];
         boolean invalid = false;
         if (!cell.isFixed() && cell.isSelected()) {
@@ -310,6 +318,8 @@ public class SudokuBoard extends View implements ISudokuBoardView {
             if (isInvalid(row, column, value)) {
                 invalid = true;
                 cell.setInvalid();
+            } else {
+                cell.clearInvalid();
             }
         }
 
@@ -323,28 +333,33 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     }
 
     private void checkComplete() {
-        // TODO: 2017/11/2
+        if (listener != null && game.isSolved(cells)) {
+            listener.onGameSolved();
+        }
     }
 
     private boolean isInvalid(int row, int column, int value) {
-        return false;// TODO: 2017/11/2
+        return !game.isSafe(cells, row, column, value);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int action = event.getActionMasked();
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-                float x = event.getX();
-                float y = event.getY();
-                handleTouchDown(x, y);
-                return true;
-            case MotionEvent.ACTION_UP:
-                x = event.getX();
-                y = event.getY();
-                handleTouchUp(x, y);
-                return true;
+        if (game != null && game.isStarted()) {
+            int action = event.getActionMasked();
+            switch (action) {
+                case MotionEvent.ACTION_DOWN:
+                    float x = event.getX();
+                    float y = event.getY();
+                    handleTouchDown(x, y);
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    x = event.getX();
+                    y = event.getY();
+                    handleTouchUp(x, y);
+                    return true;
+            }
         }
+
         return super.onTouchEvent(event);
     }
 
@@ -368,6 +383,8 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         }
 
         cell.setSelected();
+        selectedRow = row;
+        selectedColumn = column;
 
         invalidate((int) (cellWidth * column), paddingTop, (int) (cellWidth * (column + 1)), bottom);
         invalidate(paddingLeft, (int) (cellHeight * row), right, (int) (cellHeight * (row + 1)));
@@ -546,6 +563,15 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     public void startGame() {
         initCells(game.getPuzzle());
         invalidate();
+    }
+
+    @Override
+    public void setCurCellValue(int value) {
+        setCellValue(selectedRow, selectedColumn, value);
+    }
+
+    public void setListener(SudokuGameListener listener) {
+        this.listener = listener;
     }
 
     private void initCells(int[][] puzzle) {

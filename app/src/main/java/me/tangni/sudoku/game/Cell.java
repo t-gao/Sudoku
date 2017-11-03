@@ -79,6 +79,10 @@ public class Cell {
         return (flags & FLAG_MASK_INVALID) > 0;
     }
 
+    public void clearInvalid() {
+        flags &= ~FLAG_MASK_INVALID;
+    }
+
     public void setHighlighted() {
         flags |= FLAG_MASK_HIGHLIGHT;
     }

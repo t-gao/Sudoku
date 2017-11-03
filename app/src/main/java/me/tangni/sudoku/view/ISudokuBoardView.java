@@ -6,4 +6,5 @@ package me.tangni.sudoku.view;
 
 public interface ISudokuBoardView {
     void startGame();
+    void setCurCellValue(int value);
 }

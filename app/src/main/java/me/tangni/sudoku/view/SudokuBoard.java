@@ -37,6 +37,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private float cellHeight;
 
     private int boarderColor;
+    private int lineColor;
     private int numColor;
     private int invalidNumColor;
     private int highlightNumColor;
@@ -123,6 +124,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         lineWidth = (int) (1 * density + 0.5f);
 
         boarderColor = Color.BLACK;
+        lineColor = Color.parseColor("#989898");
         numColor = Color.BLACK;//Color.WHITE;
         invalidNumColor = Color.RED;
         highlightNumColor = Color.GREEN;
@@ -144,7 +146,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         inBoarderPaint.setStrokeWidth(inBoarderWidth);
 
         linePaint = new Paint();
-        linePaint.setColor(boarderColor);
+        linePaint.setColor(lineColor);
         linePaint.setStyle(Paint.Style.FILL);
         linePaint.setStrokeWidth(lineWidth);
 

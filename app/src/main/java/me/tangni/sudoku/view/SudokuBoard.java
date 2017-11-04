@@ -2,6 +2,8 @@ package me.tangni.sudoku.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -14,9 +16,8 @@ import java.util.HashSet;
 
 import me.tangni.sudoku.R;
 import me.tangni.sudoku.game.SudokuGame;
-import me.tangni.sudoku.Utils.TLog;
+import me.tangni.sudoku.util.TLog;
 import me.tangni.sudoku.game.Cell;
-import me.tangni.sudoku.game.SudokuGameListener;
 
 /**
  * @author gaojian
@@ -51,6 +52,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private Paint fixedCellBgPaint;                      //
     private Paint highlightRowAndColumnCoverPaint;     // 手指按下时的行列 Cover
     private Paint selectedCellCoverPaint;              // 选中的Cell Cover
+    private Paint pauseBitmapPaint;              // 暂停图标
     private TextPaint cellNumberPaint;            // 数字
     private TextPaint invalidNumPaint;            // 不可用数字
     private TextPaint selectedNumPaint;           // 选中数字
@@ -69,10 +71,12 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private int numberLeft, numberTop, candidateLeft, candidateTop;
     private int contentWidth, contentHeight;
 
+    private Bitmap pauseBm;
+
     private Cell[][] cells;
 
-    private SudokuGameListener listener;
     private int selectedRow = -1, selectedColumn = -1;
+    private int pausedBmX, pausedBmY, pausedBmWidth, pausedBmHeight;
 
     public SudokuBoard(Context context) {
         super(context);
@@ -114,18 +118,20 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         a.recycle();
 
         float density = getResources().getDisplayMetrics().density;
-        boarderWidth = (int) (3 * density + 0.5f);
-        inBoarderWidth = (int) (3 * density + 0.5f);
+        boarderWidth = (int) (2 * density + 0.5f);
+        inBoarderWidth = (int) (2 * density + 0.5f);
         lineWidth = (int) (1 * density + 0.5f);
 
         boarderColor = Color.BLACK;
-        numColor = Color.WHITE;
+        numColor = Color.BLACK;//Color.WHITE;
         invalidNumColor = Color.RED;
         highlightNumColor = Color.GREEN;
         selectedCellCoverColor = Color.parseColor("#60459b6f");
         highlightRowAndColumnCoverColor = Color.parseColor("#60a4eaea");
-        fixedCellBgColor = Color.parseColor("#5e6063");
-        normalCellBgColor = Color.parseColor("#898a8c");
+        fixedCellBgColor = getResources().getColor(R.color.fixed_cell_bg);//Color.parseColor("#5e6063");
+        normalCellBgColor = Color.WHITE;//Color.parseColor("#898a8c");
+
+        pauseBm = BitmapFactory.decodeResource(getResources(), R.drawable.ic_start_big);
 
         boarderPaint = new Paint();
         boarderPaint.setColor(boarderColor);
@@ -161,6 +167,8 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         selectedCellCoverPaint = new Paint();
         selectedCellCoverPaint.setColor(selectedCellCoverColor);
         selectedCellCoverPaint.setStyle(Paint.Style.FILL);
+
+        pauseBitmapPaint = new Paint();
 
         cellNumberPaint = new TextPaint();
         cellNumberPaint.setAntiAlias(true);
@@ -397,15 +405,15 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private void checkComplete(int row, int column) {
 
         boolean solved = game.isSolved(cells);
+        if (solved) {
+            game.onGameSolved();
+        }
         boolean rowSolved = isRowSolved(row, column);
         boolean columnSolved = isColumnSolved(row, column);
         boolean boxSolved = isBoxSolved(row, column);
 
         // TODO: 2017/11/4 visual feedback
 
-        if (listener != null && solved) {
-            listener.onGameSolved();
-        }
     }
 
     private boolean isRowSolved(int i, int j) {
@@ -426,7 +434,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (game != null && game.isStarted()) {
+        if (game != null && (game.isStarted() || game.isPaused())) {
             int action = event.getActionMasked();
             switch (action) {
                 case MotionEvent.ACTION_DOWN:
@@ -446,38 +454,44 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     }
 
     private void handleTouchDown(float x, float y) {
-        Cell cell = getTouchedCell(x, y);
-        if (cell == null) {
-            return;
-        }
+        if (game.isStarted()) {
+            Cell cell = getTouchedCell(x, y);
+            if (cell == null) {
+                return;
+            }
 
-        int row = cell.getRow(), column = cell.getColumn();
-        int touchedValue = cell.getValue();
+            int row = cell.getRow(), column = cell.getColumn();
+            int touchedValue = cell.getValue();
 
-        TLog.d(TAG, "handleTouchDown, row: " + row + ", column: " + column);
+            TLog.d(TAG, "handleTouchDown, row: " + row + ", column: " + column);
 
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                cells[i][j].clearSelected();
-                cells[i][j].clearHighlight();
-                cells[i][j].clearMarkerSame();
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    cells[i][j].clearSelected();
+                    cells[i][j].clearHighlight();
+                    cells[i][j].clearMarkerSame();
 //                cells[i][j].clearMarkerConflict();
-                if (/*touchedValue != 0 && */(i == row || j == column || isSameBox(row, column, i, j))) {
-                    cells[i][j].setHighlighted();
-                }
+                    if (/*touchedValue != 0 && */(i == row || j == column || isSameBox(row, column, i, j))) {
+                        cells[i][j].setHighlighted();
+                    }
 
-                if (touchedValue != 0 && cells[i][j].getValue() == touchedValue) {
-                    cells[i][j].markSame();
+                    if (touchedValue != 0 && cells[i][j].getValue() == touchedValue) {
+                        cells[i][j].markSame();
+                    }
                 }
             }
+
+            cell.setSelected();
+            selectedRow = row;
+            selectedColumn = column;
+
+            invalidate((int) (cellWidth * column), paddingTop, (int) (cellWidth * (column + 1)), bottom);
+            invalidate(paddingLeft, (int) (cellHeight * row), right, (int) (cellHeight * (row + 1)));
+        } else if (game.isPaused()) {
+            if (x >= pausedBmX && x <= (pausedBmX + pausedBmWidth) && y >= pausedBmY && y <= (pausedBmY + pausedBmHeight)) {
+                game.resumeGame();
+            }
         }
-
-        cell.setSelected();
-        selectedRow = row;
-        selectedColumn = column;
-
-        invalidate((int) (cellWidth * column), paddingTop, (int) (cellWidth * (column + 1)), bottom);
-        invalidate(paddingLeft, (int) (cellHeight * row), right, (int) (cellHeight * (row + 1)));
     }
 
     private boolean isSameBox(int row, int column, int i, int j) {
@@ -534,8 +548,22 @@ public class SudokuBoard extends View implements ISudokuBoardView {
 
         drawBoard(canvas);
 
-        drawCells(canvas);
+        if (game.isStarted() || game.isFinished()) {
+            drawCells(canvas);
+        } else if (game.isPaused()) {
+            drawPaused(canvas);
+        }
+    }
 
+    private void drawPaused(Canvas canvas) {
+        int centerX = contentWidth / 2 + paddingLeft;
+        int centerY = contentHeight / 2 + paddingTop;
+        pausedBmWidth = pauseBm.getWidth();
+        pausedBmHeight = pauseBm.getHeight();
+        pausedBmX = centerX - pausedBmWidth / 2;
+        pausedBmY = centerY - pausedBmHeight / 2;
+
+        canvas.drawBitmap(pauseBm, pausedBmX, pausedBmY, pauseBitmapPaint);
     }
 
     private void drawCell(Canvas canvas, int row, int column, Cell cell) {
@@ -659,12 +687,18 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     }
 
     @Override
-    public void setCurCellValue(int value) {
-        setCellValue(selectedRow, selectedColumn, value);
+    public void pauseGame() {
+        invalidate();
     }
 
-    public void setListener(SudokuGameListener listener) {
-        this.listener = listener;
+    @Override
+    public void resumeGame() {
+        invalidate();
+    }
+
+    @Override
+    public void setCurCellValue(int value) {
+        setCellValue(selectedRow, selectedColumn, value);
     }
 
     private void initCells(int[][] puzzle) {

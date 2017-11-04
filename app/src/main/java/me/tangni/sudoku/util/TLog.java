@@ -1,4 +1,4 @@
-package me.tangni.sudoku.Utils;
+package me.tangni.sudoku.util;
 
 import android.util.Log;
 

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_horizontal">6dp</dimen>
+    <dimen name="text_3">12sp</dimen>
+    <dimen name="title_height">42dp</dimen>
+    <dimen name="text_2">16sp</dimen>
+    <dimen name="num_btn">36sp</dimen>
+</resources>

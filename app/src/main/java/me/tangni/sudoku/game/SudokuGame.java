@@ -1,5 +1,7 @@
 package me.tangni.sudoku.game;
 
+import android.os.SystemClock;
+
 import java.util.Random;
 
 import me.tangni.sudoku.view.ISudokuBoardView;
@@ -28,6 +30,11 @@ public class SudokuGame {
 
     private boolean pencilMode = false;
 
+    private long startedTime, elapsedTime = 0;
+
+
+    private SudokuGameListener listener;
+
     public int gameState() {
         return state;
     }
@@ -52,12 +59,42 @@ public class SudokuGame {
         if (state < GAME_STATE_STARTED) {
             state = GAME_STATE_STARTED;
             iSudokuBoardViewview.startGame();
+            startedTime = System.currentTimeMillis();
+            elapsedTime = 0;
         }
     }
 
     public void restartGame() {
         state = GAME_STATE_STARTED;
         iSudokuBoardViewview.startGame();
+        startedTime = System.currentTimeMillis();
+        elapsedTime = 0;
+    }
+
+    public void pauseGame() {
+        if (state == GAME_STATE_STARTED) {
+            state = GAME_STATE_PAUSED;
+            iSudokuBoardViewview.pauseGame();
+            elapsedTime = getElapsedTime();
+            if (listener != null) {
+                listener.onGamePaused();
+            }
+        }
+    }
+
+    public void resumeGame() {
+        if (state == GAME_STATE_PAUSED) {
+            state = GAME_STATE_STARTED;
+            iSudokuBoardViewview.resumeGame();
+            startedTime = System.currentTimeMillis();
+            if (listener != null) {
+                listener.onGameResumed();
+            }
+        }
+    }
+
+    public long getElapsedTime() {
+        return System.currentTimeMillis() - startedTime + elapsedTime;
     }
 
     public void togglePencilMode() {
@@ -181,11 +218,30 @@ public class SudokuGame {
         }
     }
 
+    public void onGameSolved() {
+        state = GAME_STATE_FINISHED;
+        if (listener != null) {
+            listener.onGameSolved();
+        }
+    }
+
     public void setCellValue(int value) {
         iSudokuBoardViewview.setCurCellValue(value);
     }
 
     public boolean isSafe(Cell[][] cells, int row, int column, int value) {
         return SudokuSolver.isSafe(cells, row, column, value);
+    }
+
+    public boolean isPaused() {
+        return state == GAME_STATE_PAUSED;
+    }
+
+    public void setListener(SudokuGameListener listener) {
+        this.listener = listener;
+    }
+
+    public boolean isFinished() {
+        return state == GAME_STATE_FINISHED;
     }
 }

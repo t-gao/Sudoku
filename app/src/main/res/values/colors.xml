@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimary">#efefef</color>
+    <color name="colorPrimaryDark">#cccccc</color>
     <color name="colorAccent">#FF4081</color>
     <color name="grey">#666666</color>
+    <color name="text_grey">#666666</color>
+    <color name="color_title">#efefef</color>
+    <color name="text_mid_grey">#999999</color>
+    <color name="btn_press_color">#1296db</color>
+    <color name="fixed_cell_bg">#efefef</color>
+    <color name="text_dark_grey">#333333</color>
 </resources>

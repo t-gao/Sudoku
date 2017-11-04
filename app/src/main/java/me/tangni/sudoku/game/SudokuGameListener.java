@@ -6,4 +6,6 @@ package me.tangni.sudoku.game;
 
 public interface SudokuGameListener {
     void onGameSolved();
+    void onGameResumed();
+    void onGamePaused();
 }

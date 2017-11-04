@@ -1,44 +1,55 @@
 package me.tangni.sudoku;
 
 import android.content.DialogInterface;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.AdapterView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.lang.ref.WeakReference;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import me.tangni.sudoku.game.SudokuGame;
 import me.tangni.sudoku.game.SudokuGameListener;
+import me.tangni.sudoku.util.UiUtils;
 import me.tangni.sudoku.view.SudokuBoard;
 
-public class MainActivity extends AppCompatActivity implements SudokuGameListener {
+public class MainActivity extends BaseActivity implements SudokuGameListener {
+    private static final int MSG_UPDATE_TIME = 100;
 
     SudokuBoard sudokuBoard;
     SudokuGame sudokuGame;
 
-    String[] levels = new String[]{"不屑一顾", "快拿开", "太简单", "很简单", "还凑合"};
+    TextView levelTv, pauseTv;
+
+    private String[] levelNames;
+    private TimerTask timerTask;
+    private Timer timer;
+
+    private Handler handler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        levelTv = (TextView) findViewById(R.id.tv_level);
+        pauseTv = (TextView) findViewById(R.id.tv_pause);
+
+        levelNames = getResources().getStringArray(R.array.difficulty_levels);
+
         sudokuBoard = (SudokuBoard) findViewById(R.id.sudodu_board);
         sudokuGame = new SudokuGame();
         sudokuBoard.attachGame(sudokuGame);
-        sudokuBoard.setListener(this);
+        sudokuGame.setListener(this);
 
+        handler = new UiHandler(this);
+
+        restartGame(0);
     }
-
-    public void onStartClick(View view) {
-        if (!sudokuGame.inGame()) {
-            showLevelSelectionDialog();
-//            sudokuGame.generatePuzzle();
-//            sudokuGame.startGame();
-        }
-    }
-
 
     public void onBtn1Click(View view) {
         sudokuGame.setCellValue(1);
@@ -74,7 +85,19 @@ public class MainActivity extends AppCompatActivity implements SudokuGameListene
 
     @Override
     public void onGameSolved() {
+        cancelTimer();
         Toast.makeText(this, "SOLVED!", Toast.LENGTH_LONG).show();
+        // TODO: 2017/11/4  
+    }
+
+    @Override
+    public void onGamePaused() {
+        cancelTimer();
+    }
+
+    @Override
+    public void onGameResumed() {
+        startTimer();
     }
 
     public void onBtnPencilClick(View view) {
@@ -82,37 +105,87 @@ public class MainActivity extends AppCompatActivity implements SudokuGameListene
         view.setSelected(sudokuGame.isPencilMode());
     }
 
-    public void onReStartClick(View view) {
-        showLevelSelectionDialog();
-//        sudokuGame.generatePuzzle();
-//        sudokuGame.restartGame();
-    }
-
     private void showLevelSelectionDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("选择难度")
-                .setItems(levels, new DialogInterface.OnClickListener() {
+        builder.setTitle(R.string.dlg_title_select_difficulty)
+                .setItems(levelNames, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        sudokuGame.setLevel(which);
-                        sudokuGame.generatePuzzle();
-                        sudokuGame.restartGame();
+                        restartGame(which);
                     }
-                })
-//                .setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//                    @Override
-//                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//                        sudokuGame.setLevel(position);
-//                        sudokuGame.generatePuzzle();
-//                        sudokuGame.restartGame();
-//                    }
-//
-//                    @Override
-//                    public void onNothingSelected(AdapterView<?> parent) {
-//
-//                    }
-//                })
-        ;
+                });
         builder.create().show();
+    }
+
+    private void restartGame(int level) {
+        sudokuGame.setLevel(level);
+        sudokuGame.generatePuzzle();
+        sudokuGame.restartGame();
+        if (levelNames != null && levelNames.length > level) {
+            levelTv.setText("Lv. " + (level + 1) + ": " + levelNames[level]);
+        }
+
+        startTimer();
+    }
+
+    private void startTimer() {
+
+        timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.sendEmptyMessage(MSG_UPDATE_TIME);
+            }
+        };
+        timer = new Timer();
+        timer.schedule(timerTask, 0, 1000);
+    }
+
+    private void getAndShowElapsedTime() {
+        long elapsed = sudokuGame.getElapsedTime();
+        String timeStr = UiUtils.convertMillisToString(elapsed);
+        pauseTv.setText(timeStr);
+    }
+
+    public void onNewGameClick(View view) {
+        showLevelSelectionDialog();
+    }
+
+    private void cancelTimer() {
+        if (timerTask != null) {
+            timerTask.cancel();
+            timerTask = null;
+        }
+
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
+    public void onPauseClick(View view) {
+        if (sudokuGame.isPaused()) {
+            sudokuGame.resumeGame();
+            startTimer();
+        } else if (sudokuGame.isStarted()) {
+            sudokuGame.pauseGame();
+            cancelTimer();
+        }
+    }
+
+    private static class UiHandler extends Handler {
+        WeakReference<MainActivity> ref;
+        UiHandler(MainActivity activity) {
+            ref = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_UPDATE_TIME:
+                    if (ref != null && ref.get() != null)
+                        ref.get().getAndShowElapsedTime();
+                    break;
+            }
+        }
     }
 }

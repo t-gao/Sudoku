@@ -337,26 +337,30 @@ public class SudokuBoard extends View implements ISudokuBoardView {
             } else {
                 cell.clearCandidates();
                 cell.setValue(value);
-                for (int i = 0; i < 9; i++) {
-                    for (int j = 0; j < 9; j++) {
-                        if (isConflict(cell, i, j)) {
-                            cells[i][j].markConflict();
-                        } else {
-                            cells[i][j].clearMarkerConflict();
-                        }
+            }
 
-                        if (value != 0 && cells[i][j].getValue() == value) {
-                            cells[i][j].markSame();
-                        } else {
-                            cells[i][j].clearMarkerSame();
-                        }
 
-                        if ((i != row || j != column) && !isInvalid(i, j, cells[i][j].getValue())) {
-                            cells[i][j].clearInvalid();
-                        }
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    if (isConflict(cell, i, j)) {
+                        cells[i][j].markConflict();
+                    } else {
+                        cells[i][j].clearMarkerConflict();
+                    }
+
+                    if (value != 0 && cells[i][j].getValue() == value) {
+                        cells[i][j].markSame();
+                    } else {
+                        cells[i][j].clearMarkerSame();
+                    }
+
+                    if ((i != row || j != column) && !isInvalid(i, j, cells[i][j].getValue())) {
+                        cells[i][j].clearInvalid();
                     }
                 }
+            }
 
+            if (!game.isPencilMode()) {
                 if (isInvalid(row, column, value)) {
                     invalid = true;
                     cell.setInvalid();
@@ -378,7 +382,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
 //
 //        }
 
-        checkComplete();
+        checkComplete(row, column);
     }
 
     private boolean isConflict(Cell cell, int i, int j) {
@@ -390,10 +394,30 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         return false;
     }
 
-    private void checkComplete() {
-        if (listener != null && game.isSolved(cells)) {
+    private void checkComplete(int row, int column) {
+
+        boolean solved = game.isSolved(cells);
+        boolean rowSolved = isRowSolved(row, column);
+        boolean columnSolved = isColumnSolved(row, column);
+        boolean boxSolved = isBoxSolved(row, column);
+
+        // TODO: 2017/11/4 visual feedback
+
+        if (listener != null && solved) {
             listener.onGameSolved();
         }
+    }
+
+    private boolean isRowSolved(int i, int j) {
+        return false;// TODO: 2017/11/4
+    }
+
+    private boolean isColumnSolved(int i, int j) {
+        return false;// TODO: 2017/11/4
+    }
+
+    private boolean isBoxSolved(int i, int j) {
+        return false;// TODO: 2017/11/4
     }
 
     private boolean isInvalid(int row, int column, int value) {

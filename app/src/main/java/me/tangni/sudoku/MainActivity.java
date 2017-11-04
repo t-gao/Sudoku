@@ -1,10 +1,13 @@
 package me.tangni.sudoku;
 
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.Toast;
 
 import me.tangni.sudoku.game.SudokuGame;
@@ -16,6 +19,7 @@ public class MainActivity extends AppCompatActivity implements SudokuGameListene
     SudokuBoard sudokuBoard;
     SudokuGame sudokuGame;
 
+    String[] levels = new String[]{"不屑一顾", "快拿开", "太简单", "很简单", "还凑合"};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,17 +27,15 @@ public class MainActivity extends AppCompatActivity implements SudokuGameListene
         sudokuBoard = (SudokuBoard) findViewById(R.id.sudodu_board);
         sudokuGame = new SudokuGame();
         sudokuBoard.attachGame(sudokuGame);
-
-        sudokuGame.setLevel(3);// FIXME: 2017/11/4
-
         sudokuBoard.setListener(this);
 
     }
 
     public void onStartClick(View view) {
         if (!sudokuGame.inGame()) {
-            sudokuGame.generatePuzzle();
-            sudokuGame.startGame();
+            showLevelSelectionDialog();
+//            sudokuGame.generatePuzzle();
+//            sudokuGame.startGame();
         }
     }
 
@@ -81,7 +83,36 @@ public class MainActivity extends AppCompatActivity implements SudokuGameListene
     }
 
     public void onReStartClick(View view) {
-        sudokuGame.generatePuzzle();
-        sudokuGame.restartGame();
+        showLevelSelectionDialog();
+//        sudokuGame.generatePuzzle();
+//        sudokuGame.restartGame();
+    }
+
+    private void showLevelSelectionDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("选择难度")
+                .setItems(levels, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        sudokuGame.setLevel(which);
+                        sudokuGame.generatePuzzle();
+                        sudokuGame.restartGame();
+                    }
+                })
+//                .setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//                    @Override
+//                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                        sudokuGame.setLevel(position);
+//                        sudokuGame.generatePuzzle();
+//                        sudokuGame.restartGame();
+//                    }
+//
+//                    @Override
+//                    public void onNothingSelected(AdapterView<?> parent) {
+//
+//                    }
+//                })
+        ;
+        builder.create().show();
     }
 }

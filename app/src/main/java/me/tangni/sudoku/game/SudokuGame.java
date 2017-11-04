@@ -14,6 +14,7 @@ public class SudokuGame {
     public static final int GAME_STATE_INITED = 0;
     public static final int GAME_STATE_STARTED = 1;
     public static final int GAME_STATE_PAUSED = 2;
+    public static final int GAME_STATE_FINISHED = 3;
 
     public static final int GAME_DIFFICULTY_BEGINNER = 0;
 //    public static final int GAME_DIFFICULTY_MEDIUM = 2;
@@ -24,6 +25,8 @@ public class SudokuGame {
     private int[][] puzzle;
 
     private int level = GAME_DIFFICULTY_BEGINNER;
+
+    private boolean pencilMode = false;
 
     public int gameState() {
         return state;
@@ -41,11 +44,28 @@ public class SudokuGame {
         this.level = level;
     }
 
+    public boolean inGame() {
+        return state >= GAME_STATE_STARTED && state < GAME_STATE_FINISHED;
+    }
+
     public void startGame() {
         if (state < GAME_STATE_STARTED) {
             state = GAME_STATE_STARTED;
             iSudokuBoardViewview.startGame();
         }
+    }
+
+    public void restartGame() {
+        state = GAME_STATE_STARTED;
+        iSudokuBoardViewview.startGame();
+    }
+
+    public void togglePencilMode() {
+        pencilMode = !pencilMode;
+    }
+
+    public boolean isPencilMode() {
+        return pencilMode;
     }
 
     public void generatePuzzle() {

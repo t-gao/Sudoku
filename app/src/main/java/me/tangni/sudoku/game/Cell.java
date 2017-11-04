@@ -12,6 +12,9 @@ public class Cell {
     public static final int FLAG_MASK_INVALID = 0x00000004;
     public static final int FLAG_MASK_SELECTED = 0x00000008;
 
+    public static final int FLAG_MASK_MARKER_SAME = 0x00000010;
+    public static final int FLAG_MASK_MARKER_CONFLICT = 0x00000020;
+
     private int row, column;
     private int flags = 0;
     private int value = 0;
@@ -111,6 +114,16 @@ public class Cell {
         return candidates;
     }
 
+    public void addCandidate(int value) {
+        if (candidates == null) {
+            candidates = new HashSet<>(9);
+        }
+
+        if (!candidates.contains(value)) {
+            candidates.remove(value);
+        }
+    }
+
     public void toggleCandidate(int value) {
         if (candidates == null) {
             candidates = new HashSet<>(9);
@@ -123,4 +136,33 @@ public class Cell {
         }
     }
 
+    public void clearCandidates() {
+        if (candidates != null) {
+            candidates.clear();
+        }
+    }
+
+    public void markSame() {
+        flags |= FLAG_MASK_MARKER_SAME;
+    }
+
+    public void clearMarkerSame() {
+        flags &= ~FLAG_MASK_MARKER_SAME;
+    }
+
+    public void markConflict() {
+        flags |= FLAG_MASK_MARKER_CONFLICT;
+    }
+
+    public void clearMarkerConflict() {
+        flags &= ~FLAG_MASK_MARKER_CONFLICT;
+    }
+
+    public boolean isMarkedSame() {
+        return (flags & FLAG_MASK_MARKER_SAME) > 0;
+    }
+
+    public boolean isMarkedConflict() {
+        return (flags & FLAG_MASK_MARKER_CONFLICT) > 0;
+    }
 }

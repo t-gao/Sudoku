@@ -23,14 +23,18 @@ public class MainActivity extends AppCompatActivity implements SudokuGameListene
         sudokuBoard = (SudokuBoard) findViewById(R.id.sudodu_board);
         sudokuGame = new SudokuGame();
         sudokuBoard.attachGame(sudokuGame);
-        sudokuGame.generatePuzzle();
+
+        sudokuGame.setLevel(3);// FIXME: 2017/11/4
 
         sudokuBoard.setListener(this);
 
     }
 
     public void onStartClick(View view) {
-        sudokuGame.startGame();
+        if (!sudokuGame.inGame()) {
+            sudokuGame.generatePuzzle();
+            sudokuGame.startGame();
+        }
     }
 
 
@@ -69,5 +73,15 @@ public class MainActivity extends AppCompatActivity implements SudokuGameListene
     @Override
     public void onGameSolved() {
         Toast.makeText(this, "SOLVED!", Toast.LENGTH_LONG).show();
+    }
+
+    public void onBtnPencilClick(View view) {
+        sudokuGame.togglePencilMode();
+        view.setSelected(sudokuGame.isPencilMode());
+    }
+
+    public void onReStartClick(View view) {
+        sudokuGame.generatePuzzle();
+        sudokuGame.restartGame();
     }
 }

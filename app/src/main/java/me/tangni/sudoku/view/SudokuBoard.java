@@ -53,7 +53,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private Paint selectedCellCoverPaint;              // 选中的Cell Cover
     private TextPaint cellNumberPaint;            // 数字
     private TextPaint invalidNumPaint;            // 不可用数字
-    private TextPaint highlightNumPaint;          // 高亮数字
+    private TextPaint selectedNumPaint;           // 选中数字
     private TextPaint cellCandidatesPaint;        // 候选数字
 
     private int paddingLeft;
@@ -65,6 +65,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private float left1, left2, top1, top2, vLeft1, vLeft2, vLeft4, vLeft5, vLeft7, vLeft8, hTop1, hTop2, hTop4, hTop5, hTop7, hTop8;
     private float[] cellLefts, cellTops;
 
+    private float candidateTextSize;
     private int numberLeft, numberTop, candidateLeft, candidateTop;
     private int contentWidth, contentHeight;
 
@@ -122,7 +123,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         invalidNumColor = Color.RED;
         highlightNumColor = Color.GREEN;
         selectedCellCoverColor = Color.parseColor("#60459b6f");
-        highlightRowAndColumnCoverColor = Color.parseColor("#600000ff");
+        highlightRowAndColumnCoverColor = Color.parseColor("#60a4eaea");
         fixedCellBgColor = Color.parseColor("#5e6063");
         normalCellBgColor = Color.parseColor("#898a8c");
 
@@ -169,9 +170,9 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         invalidNumPaint.setAntiAlias(true);
         invalidNumPaint.setColor(invalidNumColor);
 
-        highlightNumPaint = new TextPaint();
-        highlightNumPaint.setAntiAlias(true);
-        highlightNumPaint.setColor(highlightNumColor);
+        selectedNumPaint = new TextPaint();
+        selectedNumPaint.setAntiAlias(true);
+        selectedNumPaint.setColor(highlightNumColor);
 
         cellCandidatesPaint = new TextPaint();
         cellCandidatesPaint.setAntiAlias(true);
@@ -245,10 +246,15 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         cellHeight = (contentHeight - boarderWidth * 2 - inBoarderWidth * 2 - lineWidth * 6) / 9.0f;
 
         float cellTextSize = cellHeight * 0.75f;
+        candidateTextSize = cellHeight / 3.3f;
+
         cellNumberPaint.setTextSize(cellTextSize);
         invalidNumPaint.setTextSize(cellTextSize);
-        highlightNumPaint.setTextSize(cellTextSize);
-        cellCandidatesPaint.setTextSize(cellHeight / 3.3f);
+        selectedNumPaint.setTextSize(cellTextSize);
+        cellCandidatesPaint.setTextSize(candidateTextSize);
+
+        candidateLeft = (int) (cellCandidatesPaint.measureText("9") / 2);
+        candidateTop = (int) candidateTextSize;
 
         numberLeft = (int) ((cellWidth - cellNumberPaint.measureText("9")) / 2);
         numberTop = (int) ((cellHeight - cellNumberPaint.getTextSize()) / 2);
@@ -306,21 +312,64 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         return "null";
     }
 
-    public void setCellValue(int row, int column, int value) {
+    private void setCellValue(int row, int column, int value) {
         if (row < 0 || row > 8 || column < 0 || column > 8 || value < 0 || value > 9) {
             return;
         }
 
         Cell cell = cells[row][column];
+//        HashSet<Integer> candidates = cell.getCandidates();
+//        boolean valueMode = candidates == null || candidates.isEmpty();
+
         boolean invalid = false;
         if (!cell.isFixed() && cell.isSelected()) {
-            cell.setValue(value);
-            if (isInvalid(row, column, value)) {
-                invalid = true;
-                cell.setInvalid();
+            if (game.isPencilMode()) {
+                if (value == 0) {
+                    cell.clearCandidates();
+                    cell.setValue(0);
+                } else {
+                    if (cell.getValue() != 0) {
+                        cell.addCandidate(cell.getValue());
+                    }
+                    cell.toggleCandidate(value);
+                    cell.setValue(0);
+                }
             } else {
-                cell.clearInvalid();
+                cell.clearCandidates();
+                cell.setValue(value);
+                for (int i = 0; i < 9; i++) {
+                    for (int j = 0; j < 9; j++) {
+                        if (isConflict(cell, i, j)) {
+                            cells[i][j].markConflict();
+                        } else {
+                            cells[i][j].clearMarkerConflict();
+                        }
+
+                        if (value != 0 && cells[i][j].getValue() == value) {
+                            cells[i][j].markSame();
+                        } else {
+                            cells[i][j].clearMarkerSame();
+                        }
+
+                        if ((i != row || j != column) && !isInvalid(i, j, cells[i][j].getValue())) {
+                            cells[i][j].clearInvalid();
+                        }
+                    }
+                }
+
+                if (isInvalid(row, column, value)) {
+                    invalid = true;
+                    cell.setInvalid();
+                } else {
+                    cell.clearInvalid();
+                }
             }
+
+//            for (int i = 0; i < 9; i++) {
+//                for (int j = 0; j < 9; j++) {
+//                    cells[i][j].clearHighlight();
+//                }
+//            }
         }
 
 //        if (invalid) {
@@ -330,6 +379,15 @@ public class SudokuBoard extends View implements ISudokuBoardView {
 //        }
 
         checkComplete();
+    }
+
+    private boolean isConflict(Cell cell, int i, int j) {
+        Cell c = cells[i][j];
+        int cellI = cell.getRow(), cellJ = cell.getColumn();
+        if (cell.getValue() != 0 && (i != cellI || j != cellJ) && c.getValue() == cell.getValue()) {
+            return cellI == i || cellJ == j || isSameBox(cellI, cellJ, i, j);
+        }
+        return false;
     }
 
     private void checkComplete() {
@@ -370,14 +428,22 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         }
 
         int row = cell.getRow(), column = cell.getColumn();
+        int touchedValue = cell.getValue();
 
         TLog.d(TAG, "handleTouchDown, row: " + row + ", column: " + column);
 
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
                 cells[i][j].clearSelected();
-                if (i == row || j == column) {
+                cells[i][j].clearHighlight();
+                cells[i][j].clearMarkerSame();
+//                cells[i][j].clearMarkerConflict();
+                if (/*touchedValue != 0 && */(i == row || j == column || isSameBox(row, column, i, j))) {
                     cells[i][j].setHighlighted();
+                }
+
+                if (touchedValue != 0 && cells[i][j].getValue() == touchedValue) {
+                    cells[i][j].markSame();
                 }
             }
         }
@@ -390,14 +456,18 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         invalidate(paddingLeft, (int) (cellHeight * row), right, (int) (cellHeight * (row + 1)));
     }
 
-    private void handleTouchUp(float x, float y) {
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                cells[i][j].clearHighlight();
-            }
-        }
+    private boolean isSameBox(int row, int column, int i, int j) {
+        return i / 3 == row / 3 && j / 3 == column / 3;
+    }
 
-        invalidate();
+    private void handleTouchUp(float x, float y) {
+//        for (int i = 0; i < 9; i++) {
+//            for (int j = 0; j < 9; j++) {
+//                cells[i][j].clearHighlight();
+//            }
+//        }
+//
+//        invalidate();
     }
 
     private Cell getTouchedCell(float x, float y) {
@@ -466,10 +536,10 @@ public class SudokuBoard extends View implements ISudokuBoardView {
             int value = cell.getValue();
             if (value > 0) {
                 // draw text
-                if (cell.isInvalid()) {
+                if (cell.isInvalid() || cell.isMarkedConflict()) {
                     canvas.drawText(String.valueOf(value), x, y, invalidNumPaint);
-                } else if (cell.isHighlighted() || cell.isSelected()) {
-                    canvas.drawText(String.valueOf(value), x, y, highlightNumPaint);
+                } else if (cell.isSelected() || cell.isMarkedSame()) {
+                    canvas.drawText(String.valueOf(value), x, y, selectedNumPaint);
                 } else if (cell.isFixed()) {
                     canvas.drawText(String.valueOf(value), x, y, cellNumberPaint);
                 } else {
@@ -492,19 +562,18 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         float cellLeft = cellLefts[column] + candidateLeft;
         float cellTop = cellTops[row] + candidateTop;
         float txtSize = cellHeight / 3.3f;
+        int i, j;
+        float x, y;
         for (int candidate : candidates) {
-            float x = cellLeft + (candidate - 1) * txtSize;
-            float y = cellTop + (candidate - 1) * txtSize;
+            i = (candidate - 1) / 3;
+            j = (candidate - 1) % 3;
+            x = cellLeft + j * txtSize;
+            y = cellTop + i * txtSize;
             canvas.drawText(String.valueOf(candidate), x, y, cellCandidatesPaint);
         }
     }
 
     private void drawCells(Canvas canvas) {
-        int state = SudokuGame.GAME_STATE_EMPTY;
-        if (game != null) {
-            state = game.gameState();
-        }
-
         if (cells != null && cells.length == 9) {
             for (int i = 0; i < 9; i++) {
                 if (cells[i] != null && cells[i].length == 9) {

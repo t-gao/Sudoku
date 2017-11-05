@@ -43,6 +43,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private int numColor;
     private int invalidNumColor;
     private int highlightNumColor;
+    private int sameCellBgColor;
     private int fixedCellBgColor;
     private int normalCellBgColor;
     private int highlightRowAndColumnCoverColor;
@@ -53,6 +54,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private Paint linePaint;                      // 细线
     private Paint normalCellBgPaint;                      //
     private Paint fixedCellBgPaint;                      //
+    private Paint sameCellBgPaint;                      // marker same 的cell 背景
     private Paint highlightRowAndColumnCoverPaint;     // 手指按下时的行列 Cover
     private Paint selectedCellCoverPaint;              // 选中的Cell Cover
     private Paint pauseBitmapPaint;              // 暂停图标
@@ -131,11 +133,12 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         fixedNumColor = Color.BLACK;
         numColor = getResources().getColor(R.color.cell_num_color);//Color.parseColor("#2D52BA");//Color.BLACK;//Color.WHITE;
         invalidNumColor = Color.RED;
-        highlightNumColor = Color.GREEN;
+        highlightNumColor = numColor;//Color.GREEN;
         selectedCellCoverColor = Color.parseColor("#60459b6f");
         highlightRowAndColumnCoverColor = Color.parseColor("#60a4eaea");
         fixedCellBgColor = Color.WHITE;//getResources().getColor(R.color.fixed_cell_bg);//Color.parseColor("#5e6063");
         normalCellBgColor = Color.WHITE;//Color.parseColor("#898a8c");
+        sameCellBgColor = getResources().getColor(R.color.same_cell_bg);//Color.parseColor("#898a8c");
 
 //        pauseBm = BitmapFactory.decodeResource(getResources(), R.drawable.ic_start_big);
         pauseBm = DrawableUtil.getBitmapFromVectorDrawable(getContext(), R.drawable.ic_start_svg);
@@ -162,6 +165,10 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         fixedCellBgPaint = new Paint();
         fixedCellBgPaint.setColor(fixedCellBgColor);
         fixedCellBgPaint.setStyle(Paint.Style.FILL);
+
+        sameCellBgPaint = new Paint();
+        sameCellBgPaint.setColor(sameCellBgColor);
+        sameCellBgPaint.setStyle(Paint.Style.FILL);
 
         highlightRowAndColumnCoverPaint = new Paint();
         highlightRowAndColumnCoverPaint.setColor(highlightRowAndColumnCoverColor);
@@ -586,7 +593,9 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         float y = cellTop + numberTop - numberAscent;
 
         // draw bg
-        if (cell.isFixed()) {
+        if (cell.isMarkedSame()) {
+            canvas.drawRect(cellLeft, cellTop, cellLeft + cellWidth, cellTop + cellHeight, sameCellBgPaint);
+        } else if (cell.isFixed()) {
             canvas.drawRect(cellLeft, cellTop, cellLeft + cellWidth, cellTop + cellHeight, fixedCellBgPaint);
         } else {
             canvas.drawRect(cellLeft, cellTop, cellLeft + cellWidth, cellTop + cellHeight, normalCellBgPaint);
@@ -601,7 +610,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
                 // draw text
                 if (cell.isInvalid() || cell.isMarkedConflict()) {
                     canvas.drawText(String.valueOf(value), x, y, invalidNumPaint);
-                } else if (cell.isSelected() || cell.isMarkedSame()) {
+                } else if (cell.isSelected() /* || cell.isMarkedSame()*/) { // marker same 的 不再用不同字体色，改用背景色标示
                     canvas.drawText(String.valueOf(value), x, y, selectedNumPaint);
                 } else if (cell.isFixed()) {
                     canvas.drawText(String.valueOf(value), x, y, fixedNumberPaint);

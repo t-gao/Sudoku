@@ -10,4 +10,8 @@
     <color name="btn_press_color">#1296db</color>
     <color name="fixed_cell_bg">#efefef</color>
     <color name="text_dark_grey">#333333</color>
+    <color name="cell_num_color">#2D52BA</color>
+    <color name="black">#000000</color>
+    <color name="pencil_btn_text_press_color">#0035cb</color>
+    <color name="pencil_btn_text_color">@color/text_grey</color>
 </resources>

@@ -16,6 +16,7 @@ import java.util.HashSet;
 
 import me.tangni.sudoku.R;
 import me.tangni.sudoku.game.SudokuGame;
+import me.tangni.sudoku.util.DrawableUtil;
 import me.tangni.sudoku.util.TLog;
 import me.tangni.sudoku.game.Cell;
 
@@ -38,6 +39,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
 
     private int boarderColor;
     private int lineColor;
+    private int fixedNumColor;
     private int numColor;
     private int invalidNumColor;
     private int highlightNumColor;
@@ -54,6 +56,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     private Paint highlightRowAndColumnCoverPaint;     // 手指按下时的行列 Cover
     private Paint selectedCellCoverPaint;              // 选中的Cell Cover
     private Paint pauseBitmapPaint;              // 暂停图标
+    private TextPaint fixedNumberPaint;           // 题目固有数字
     private TextPaint cellNumberPaint;            // 数字
     private TextPaint invalidNumPaint;            // 不可用数字
     private TextPaint selectedNumPaint;           // 选中数字
@@ -125,15 +128,17 @@ public class SudokuBoard extends View implements ISudokuBoardView {
 
         boarderColor = Color.BLACK;
         lineColor = Color.parseColor("#989898");
-        numColor = Color.BLACK;//Color.WHITE;
+        fixedNumColor = Color.BLACK;
+        numColor = getResources().getColor(R.color.cell_num_color);//Color.parseColor("#2D52BA");//Color.BLACK;//Color.WHITE;
         invalidNumColor = Color.RED;
         highlightNumColor = Color.GREEN;
         selectedCellCoverColor = Color.parseColor("#60459b6f");
         highlightRowAndColumnCoverColor = Color.parseColor("#60a4eaea");
-        fixedCellBgColor = getResources().getColor(R.color.fixed_cell_bg);//Color.parseColor("#5e6063");
+        fixedCellBgColor = Color.WHITE;//getResources().getColor(R.color.fixed_cell_bg);//Color.parseColor("#5e6063");
         normalCellBgColor = Color.WHITE;//Color.parseColor("#898a8c");
 
-        pauseBm = BitmapFactory.decodeResource(getResources(), R.drawable.ic_start_big);
+//        pauseBm = BitmapFactory.decodeResource(getResources(), R.drawable.ic_start_big);
+        pauseBm = DrawableUtil.getBitmapFromVectorDrawable(getContext(), R.drawable.ic_start_svg);
 
         boarderPaint = new Paint();
         boarderPaint.setColor(boarderColor);
@@ -175,6 +180,10 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         cellNumberPaint = new TextPaint();
         cellNumberPaint.setAntiAlias(true);
         cellNumberPaint.setColor(numColor);
+
+        fixedNumberPaint = new TextPaint();
+        fixedNumberPaint.setAntiAlias(true);
+        fixedNumberPaint.setColor(fixedNumColor);
 
         invalidNumPaint = new TextPaint();
         invalidNumPaint.setAntiAlias(true);
@@ -259,6 +268,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         candidateTextSize = cellHeight / 3.3f;
 
         cellNumberPaint.setTextSize(cellTextSize);
+        fixedNumberPaint.setTextSize(cellTextSize);
         invalidNumPaint.setTextSize(cellTextSize);
         selectedNumPaint.setTextSize(cellTextSize);
         cellCandidatesPaint.setTextSize(candidateTextSize);
@@ -575,7 +585,6 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         float numberAscent = cellNumberPaint.ascent();
         float y = cellTop + numberTop - numberAscent;
 
-
         // draw bg
         if (cell.isFixed()) {
             canvas.drawRect(cellLeft, cellTop, cellLeft + cellWidth, cellTop + cellHeight, fixedCellBgPaint);
@@ -595,7 +604,7 @@ public class SudokuBoard extends View implements ISudokuBoardView {
                 } else if (cell.isSelected() || cell.isMarkedSame()) {
                     canvas.drawText(String.valueOf(value), x, y, selectedNumPaint);
                 } else if (cell.isFixed()) {
-                    canvas.drawText(String.valueOf(value), x, y, cellNumberPaint);
+                    canvas.drawText(String.valueOf(value), x, y, fixedNumberPaint);
                 } else {
                     canvas.drawText(String.valueOf(value), x, y, cellNumberPaint);
                 }

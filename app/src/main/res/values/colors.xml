@@ -15,4 +15,5 @@
     <color name="pencil_btn_text_press_color">#0035cb</color>
     <color name="pencil_btn_text_color">@color/text_grey</color>
     <color name="same_cell_bg">#dddddd</color>
+    <color name="cover_layer">#30000000</color>
 </resources>

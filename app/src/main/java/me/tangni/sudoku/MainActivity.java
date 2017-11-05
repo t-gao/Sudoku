@@ -1,13 +1,15 @@
 package me.tangni.sudoku;
 
 import android.content.DialogInterface;
+import android.graphics.drawable.AnimatedVectorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.Timer;
@@ -31,6 +33,8 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
     private Timer timer;
 
     private Handler handler;
+    private ImageView successImgView;
+    private View successCover;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +42,9 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
         setContentView(R.layout.activity_main);
         levelTv = (TextView) findViewById(R.id.tv_level);
         pauseTv = (TextView) findViewById(R.id.tv_pause);
+
+        successImgView = (ImageView) findViewById(R.id.iv_success);
+        successCover = findViewById(R.id.success_cover);
 
         levelNames = getResources().getStringArray(R.array.difficulty_levels);
 
@@ -98,8 +105,21 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
     @Override
     public void onGameSolved() {
         cancelTimer();
-        Toast.makeText(this, "SOLVED!", Toast.LENGTH_LONG).show();
-        // TODO: 2017/11/4  
+        showSuccess();
+    }
+
+    private void showSuccess() {
+        successCover.setVisibility(View.VISIBLE);
+        successImgView.setVisibility(View.VISIBLE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            AnimatedVectorDrawable animatedVectorDrawable =  (AnimatedVectorDrawable) getResources().getDrawable(R.drawable.ic_animated_success);
+            successImgView.setImageDrawable(animatedVectorDrawable);
+            if(animatedVectorDrawable != null) {
+                animatedVectorDrawable.start();
+            }
+        } else {
+            successImgView.setImageResource(R.drawable.ic_success);
+        }
     }
 
     @Override
@@ -130,6 +150,8 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
     }
 
     private void restartGame(int level) {
+        successCover.setVisibility(View.GONE);
+        successImgView.setVisibility(View.GONE);
         sudokuGame.setLevel(level);
         sudokuGame.generatePuzzle();
         sudokuGame.restartGame();

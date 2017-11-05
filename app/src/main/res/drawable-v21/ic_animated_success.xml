@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_success">
+    <target
+        android:name="circle"
+        android:animation="@animator/success_svg_animator" />
+    <target
+        android:name="check"
+        android:animation="@animator/success_svg_animator" />
+</animated-vector>

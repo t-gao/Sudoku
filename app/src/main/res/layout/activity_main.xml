@@ -56,14 +56,33 @@
         android:clickable="true"
         android:onClick="onPauseClick"
         />
-    <me.tangni.sudoku.view.SudokuBoard
-        android:id="@+id/sudodu_board"
+    <RelativeLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_level"
         android:layout_marginLeft="@dimen/margin_horizontal"
         android:layout_marginRight="@dimen/margin_horizontal"
-        android:layout_below="@id/tv_level"
-        android:layout_marginTop="8dp"
-        android:layout_height="wrap_content" />
+        android:layout_marginTop="8dp">
+
+        <me.tangni.sudoku.view.SudokuBoard
+            android:id="@+id/sudodu_board"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <View
+            android:id="@+id/success_cover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/cover_layer"
+            android:visibility="gone"
+            android:layout_alignBottom="@id/sudodu_board"
+            />
+        <ImageView
+            android:id="@+id/iv_success"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
 
     <!--<TextView-->
         <!--android:id="@+id/btn_start"-->

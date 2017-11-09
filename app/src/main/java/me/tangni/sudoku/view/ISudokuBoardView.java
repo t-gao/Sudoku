@@ -12,4 +12,6 @@ public interface ISudokuBoardView {
     void resumeGame();
 
     void setCurCellValue(int value);
+
+    String serialize();
 }

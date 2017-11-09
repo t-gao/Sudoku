@@ -17,6 +17,7 @@ import java.util.TimerTask;
 
 import me.tangni.sudoku.game.SudokuGame;
 import me.tangni.sudoku.game.SudokuGameListener;
+import me.tangni.sudoku.util.TLog;
 import me.tangni.sudoku.util.UiUtils;
 import me.tangni.sudoku.view.SudokuBoard;
 
@@ -68,6 +69,7 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
         super.onPause();
         sudokuGame.pauseGame();
         cancelTimer();
+        TLog.d("SUDOKU", "serialized: " + sudokuGame.serialize());
     }
 
     public void onBtn1Click(View view) {

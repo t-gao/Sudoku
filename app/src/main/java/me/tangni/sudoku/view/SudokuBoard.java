@@ -12,6 +12,10 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.HashSet;
 
 import me.tangni.sudoku.R;
@@ -719,6 +723,31 @@ public class SudokuBoard extends View implements ISudokuBoardView {
     @Override
     public void setCurCellValue(int value) {
         setCellValue(selectedRow, selectedColumn, value);
+    }
+
+    @Override
+    public String serialize() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.putOpt("selected_row", selectedRow);
+            jsonObject.putOpt("selected_column", selectedColumn);
+            JSONArray cellArray = new JSONArray();
+            if (cells != null && cells.length == 9) {
+                for (int i = 0; i < 9; i++) {
+                    if (cells[i] != null && cells[i].length == 9) {
+                        for (int j = 0; j < 9; j++) {
+                            Cell cell = cells[i][j];
+                            cellArray.put(new JSONObject(cell.serialize()));
+                        }
+                    }
+                }
+            }
+            jsonObject.putOpt("cells", cellArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject.toString();
     }
 
     private void initCells(int[][] puzzle) {

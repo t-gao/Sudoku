@@ -2,6 +2,9 @@ package me.tangni.sudoku.game;
 
 import android.os.SystemClock;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Random;
 
 import me.tangni.sudoku.view.ISudokuBoardView;
@@ -231,5 +234,21 @@ public class SudokuGame {
 
     public boolean isFinished() {
         return state == GAME_STATE_FINISHED;
+    }
+
+    public String serialize() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.putOpt("level", level);
+            jsonObject.putOpt("state", state);
+            jsonObject.putOpt("start_time", startedTime);
+            jsonObject.putOpt("elapsed_time", elapsedTime);
+            jsonObject.putOpt("pencil_mode", pencilMode);
+            jsonObject.putOpt("board", new JSONObject(iSudokuBoardViewview.serialize()));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject.toString();
     }
 }

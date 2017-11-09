@@ -1,6 +1,11 @@
 package me.tangni.sudoku.game;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * Created by gaojian on 2017/11/2.
@@ -164,5 +169,32 @@ public class Cell {
 
     public boolean isMarkedConflict() {
         return (flags & FLAG_MASK_MARKER_CONFLICT) > 0;
+    }
+
+    public String serialize() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.putOpt("row", row);
+            jsonObject.putOpt("column", column);
+            jsonObject.putOpt("value", value);
+            jsonObject.putOpt("flags", flags);
+
+            if (candidates != null && !candidates.isEmpty()) {
+                JSONArray candidatesArray = new JSONArray();
+                Iterator<Integer> iterator = candidates.iterator();
+                while (iterator.hasNext()) {
+                    Integer candidate = iterator.next();
+                    if (candidate != null) {
+                        candidatesArray.put(candidate.intValue());
+                    }
+                }
+
+                jsonObject.putOpt("candidates", candidatesArray);
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject.toString();
     }
 }

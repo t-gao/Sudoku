@@ -149,11 +149,13 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
 
     @Override
     public void onGamePaused() {
+        pauseTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_start, 0);
         cancelTimer();
     }
 
     @Override
     public void onGameResumed() {
+        pauseTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_pause, 0);
         startTimer();
     }
 
@@ -168,6 +170,8 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
                 .setItems(levelNames, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        btnPencil.setSelected(false);
+                        sudokuGame.setPencilMode(false);
                         restartGame(which);
                     }
                 });
@@ -187,6 +191,8 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
         boolean pencilMode = sudokuGame.isPencilMode();
         btnPencil.setSelected(pencilMode);
 
+        pauseTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_pause, 0);
+
         startTimer();
     }
 
@@ -200,10 +206,14 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
             levelTv.setText("Lv. " + (level + 1) + ": " + levelNames[level]);
         }
 
+        pauseTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_pause, 0);
+        btnPencil.setSelected(sudokuGame.isPencilMode());
         startTimer();
     }
 
     private void startTimer() {
+
+        cancelTimer();
 
         timerTask = new TimerTask() {
             @Override
@@ -239,9 +249,11 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
 
     public void onPauseClick(View view) {
         if (sudokuGame.isPaused()) {
+            pauseTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_pause, 0);
             sudokuGame.resumeGame();
             startTimer();
         } else if (sudokuGame.isStarted()) {
+            pauseTv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_start, 0);
             sudokuGame.pauseGame();
             cancelTimer();
         }

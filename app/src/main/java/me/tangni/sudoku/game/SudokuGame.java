@@ -107,6 +107,10 @@ public class SudokuGame {
         return System.currentTimeMillis() - startedTime + elapsedTime;
     }
 
+    public void setPencilMode(boolean on) {
+        pencilMode = on;
+    }
+
     public void togglePencilMode() {
         pencilMode = !pencilMode;
     }

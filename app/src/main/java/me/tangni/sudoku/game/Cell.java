@@ -25,10 +25,20 @@ public class Cell {
     private int value = 0;
     private HashSet<Integer> candidates;
 
+    public Cell() {
+    }
+
     public Cell(int row, int column, int value) {
         this.row = row;
         this.column = column;
         this.value = value;
+    }
+
+    public Cell(int row, int column, int value, int flags) {
+        this.row = row;
+        this.column = column;
+        this.value = value;
+        this.flags = flags;
     }
 
     public int getRow() {
@@ -125,7 +135,7 @@ public class Cell {
         }
 
         if (!candidates.contains(value)) {
-            candidates.remove(value);
+            candidates.add(value);
         }
     }
 
@@ -196,5 +206,32 @@ public class Cell {
             e.printStackTrace();
         }
         return jsonObject.toString();
+    }
+
+    public static Cell fromJson(String jsonString) {
+        Cell cell = null;
+        try {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            int row = jsonObject.optInt("row");
+            int column = jsonObject.optInt("column");
+            int value = jsonObject.optInt("value");
+            int flags = jsonObject.optInt("flags");
+
+            cell = new Cell(row, column, value, flags);
+
+            JSONArray candidatesArray = jsonObject.optJSONArray("candidates");
+            int candidateLen = candidatesArray == null ? 0 : candidatesArray.length();
+            if (candidateLen > 0) {
+                for (int i = 0; i < candidateLen; i++) {
+                    int candidate = candidatesArray.optInt(i);
+                    cell.addCandidate(candidate);
+                }
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return cell;
     }
 }

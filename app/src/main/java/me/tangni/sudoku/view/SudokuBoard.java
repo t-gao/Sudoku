@@ -3,11 +3,11 @@ package me.tangni.sudoku.view;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.text.TextPaint;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -750,16 +750,60 @@ public class SudokuBoard extends View implements ISudokuBoardView {
         return jsonObject.toString();
     }
 
-    private void initCells(int[][] puzzle) {
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                int value = puzzle[i][j];
-                Cell cell= new Cell(i, j, value);
-                if (value > 0) {
-                    cell.setFixed();
+    @Override
+    public int[][] deserialize(String serialized) {
+        int[][] puzzle = null;
+        if (!TextUtils.isEmpty(serialized)) {
+            try {
+                JSONObject object = new JSONObject(serialized);
+                selectedRow = object.optInt("selected_row");
+                selectedColumn = object.optInt("selected_column");
+
+                JSONArray cellArray = object.optJSONArray("cells");
+                int cellLen = cellArray != null ? cellArray.length() : 0;
+                if (cellLen > 0) {
+                    if (cells == null) {
+                        cells = new Cell[9][9];
+                    }
+
+                    puzzle = new int[9][9];
+
+                    for (int i = 0; i < cellLen; i++) {
+                        JSONObject cellObj = cellArray.optJSONObject(i);
+                        int row = i / 9;
+                        int column = i % 9;
+                        Cell cell = cellObj != null ? Cell.fromJson(cellObj.toString()) : null;
+                        if (cell == null) {
+                            cell = new Cell(row, column, 0);
+                        }
+
+                        puzzle[row][column] = cell.getValue();
+
+                        cells[row][column] = cell;
+                    }
                 }
-                cells[i][j] = cell;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return puzzle;
+    }
+
+    private void initCells(int[][] puzzle) {
+        if (puzzle != null && puzzle.length == 9) {
+            for (int i = 0; i < 9; i++) {
+                if (puzzle[i] != null && puzzle[i].length == 9) {
+                    for (int j = 0; j < 9; j++) {
+                        int value = puzzle[i][j];
+                        Cell cell= new Cell(i, j, value);
+                        if (value > 0) {
+                            cell.setFixed();
+                        }
+                        cells[i][j] = cell;
+                    }
+                }
             }
         }
     }
+
 }

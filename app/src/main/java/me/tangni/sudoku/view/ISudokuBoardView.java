@@ -14,4 +14,6 @@ public interface ISudokuBoardView {
     void setCurCellValue(int value);
 
     String serialize();
+
+    int[][] deserialize(String serialized);
 }

@@ -1,7 +1,5 @@
 package me.tangni.sudoku.game;
 
-import android.os.SystemClock;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -72,6 +70,15 @@ public class SudokuGame {
         iSudokuBoardViewview.startGame();
         startedTime = System.currentTimeMillis();
         elapsedTime = 0;
+    }
+
+    public void resumeGameFromSerialized(String serialized) {
+        state = GAME_STATE_PAUSED;// mark this to call resumeGame()
+        deserialize(serialized);
+        resumeGame();
+
+//        state = GAME_STATE_PAUSED;
+//        iSudokuBoardViewview.pauseGame();
     }
 
     public void pauseGame() {
@@ -250,5 +257,23 @@ public class SudokuGame {
         }
 
         return jsonObject.toString();
+    }
+
+    private void deserialize(String serialized) {
+        try {
+            JSONObject jsonObject = new JSONObject(serialized);
+            level = jsonObject.optInt("level");
+            state = jsonObject.optInt("state");
+            startedTime = jsonObject.optLong("start_time");
+            elapsedTime = jsonObject.optLong("elapsed_time");
+            pencilMode = jsonObject.optBoolean("pencil_mode");
+            JSONObject boardObj = jsonObject.optJSONObject("board");
+            if (iSudokuBoardViewview != null) {
+                puzzle = iSudokuBoardViewview.deserialize(boardObj.toString());
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

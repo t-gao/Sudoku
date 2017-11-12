@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -15,6 +16,7 @@ import java.lang.ref.WeakReference;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import me.tangni.sudoku.cache.Cache;
 import me.tangni.sudoku.game.SudokuGame;
 import me.tangni.sudoku.game.SudokuGameListener;
 import me.tangni.sudoku.util.TLog;
@@ -34,8 +36,11 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
     private Timer timer;
 
     private Handler handler;
+
     private ImageView successImgView;
     private View successCover;
+
+    private TextView btnPencil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +48,8 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
         setContentView(R.layout.activity_main);
         levelTv = (TextView) findViewById(R.id.tv_level);
         pauseTv = (TextView) findViewById(R.id.tv_pause);
+
+        btnPencil = (TextView) findViewById(R.id.btn_pencil);
 
         successImgView = (ImageView) findViewById(R.id.iv_success);
         successCover = findViewById(R.id.success_cover);
@@ -56,7 +63,12 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
 
         handler = new UiHandler(this);
 
-        restartGame(0);
+        String cachedGame = Cache.getInstance().getGameSerialized();
+        if (!TextUtils.isEmpty(cachedGame)) {
+            resumeGameFromSerialized(cachedGame);
+        } else {
+            restartGame(0);
+        }
     }
 
     @Override
@@ -70,6 +82,17 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
         sudokuGame.pauseGame();
         cancelTimer();
         TLog.d("SUDOKU", "serialized: " + sudokuGame.serialize());
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (sudokuGame.isFinished()) {
+            Cache.getInstance().putGameSerialized("");
+        } else {
+            String serialized = sudokuGame.serialize();
+            Cache.getInstance().putGameSerialized(serialized);
+        }
     }
 
     public void onBtn1Click(View view) {
@@ -149,6 +172,22 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
                     }
                 });
         builder.create().show();
+    }
+
+    private void resumeGameFromSerialized(String cachedGame) {
+        successCover.setVisibility(View.GONE);
+        successImgView.setVisibility(View.GONE);
+        sudokuGame.resumeGameFromSerialized(cachedGame);
+
+        int level = sudokuGame.getLevel();
+        if (levelNames != null && levelNames.length > level) {
+            levelTv.setText("Lv. " + (level + 1) + ": " + levelNames[level]);
+        }
+
+        boolean pencilMode = sudokuGame.isPencilMode();
+        btnPencil.setSelected(pencilMode);
+
+        startTimer();
     }
 
     private void restartGame(int level) {

@@ -11,13 +11,30 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+
+        buildConfigField "String", "BUGLY_APP_ID", "\"" + BUGLY_APP_ID + "\""
+
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    productFlavors {
+        tangni{}
+        google{}
+    }
+
+    productFlavors.all { flavor ->
+//        flavor.manifestPlaceholders.put("UMENG_CHANNEL_VALUE", name)
+
+        buildConfigField "String", "BUILD_CHANNEL", "\"" + name + "\""
+
+    }
+
 }
 
 dependencies {
@@ -28,4 +45,7 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+
+    compile 'com.tencent.bugly:crashreport:latest.release'
+
 }

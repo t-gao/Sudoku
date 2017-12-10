@@ -16,16 +16,48 @@ android {
 
     }
 
-    buildTypes {
+    signingConfigs {
+        debug {
+            // No debug config
+            storeFile file(KEY_STORE_PATH)
+            storePassword KEY_STORE_PW
+            keyAlias KEY_ALIAS
+            keyPassword KEY_PW
+            v2SigningEnabled true
+        }
+
         release {
+            storeFile file(KEY_STORE_PATH)
+            storePassword KEY_STORE_PW
+            keyAlias KEY_ALIAS
+            keyPassword KEY_PW
+            v2SigningEnabled true
+        }
+    }
+
+    buildTypes {
+        debug {
             minifyEnabled false
+            zipAlignEnabled false
+            shrinkResources false
+            signingConfig signingConfigs.debug
+        }
+
+        release {
+            minifyEnabled true
+            zipAlignEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.release
+
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
     productFlavors {
         tangni{}
-        google{}
+        google{
+            applicationIdSuffix ".google"
+        }
     }
 
     productFlavors.all { flavor ->

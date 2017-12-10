@@ -72,11 +72,6 @@ public class MainActivity extends BaseActivity implements SudokuGameListener {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
         sudokuGame.pauseGame();

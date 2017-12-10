@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="difficulty_levels">
-        <item>入门</item>
-        <item>简单</item>
-        <item>一般</item>
-        <item>困难</item>
-        <item>大师</item>
+        <item>Novice</item>
+        <item>Easy</item>
+        <item>Normal</item>
+        <item>Hard</item>
+        <item>Master</item>
     </string-array>
 </resources>

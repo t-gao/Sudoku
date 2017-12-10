@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">Sudoku</string>
-    <string name="dlg_title_select_difficulty">选择难度</string>
-    <string name="new_game">新游戏</string>
-    <string name="erase">擦除</string>
-    <string name="pencil">铅笔</string>
+    <string name="app_name">SudoCool</string>
+    <string name="dlg_title_select_difficulty">Choose Level</string>
+    <string name="new_game">New Game</string>
+    <string name="erase">Erase</string>
+    <string name="pencil">Pencil</string>
 </resources>
